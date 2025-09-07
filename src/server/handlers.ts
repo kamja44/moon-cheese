@@ -25,7 +25,7 @@ let userGrade = 'EXPLORER';
 
 let recentProducts: RecentProduct[] = defaultRecentProducts;
 
-const delay = (minMs: number = 120, maxMs: number = 300) =>
+const delay = (minMs = 120, maxMs = 300) =>
   new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs));
 
 const KRW_EXCHANGE_RATE = Math.floor(Math.random() * (1400 - 1200 + 1)) + 1200;
@@ -183,7 +183,7 @@ export const handlers = [
       data: {
         deliveryType: 'EXPRESS' | 'PREMIUM';
         totalPrice: number;
-        items: { productId: number; quantity: number }[];
+        items: Array<{ productId: number; quantity: number }>;
       };
     }
   >('/api/product/purchase', async ({ request }) => {
@@ -246,9 +246,13 @@ export const handlers = [
         calculatedDeliveryFee = 0; // $30 이상이면 무료
       } else {
         // 등급별 배송비 (현재는 EXPLORER 기준으로 계산, 실제로는 사용자 등급을 확인해야 함)
-        if (userGrade === 'EXPLORER') calculatedDeliveryFee = 2;
-        else if (userGrade === 'PILOT') calculatedDeliveryFee = 1;
-        else if (userGrade === 'COMMANDER') calculatedDeliveryFee = 0;
+        if (userGrade === 'EXPLORER') {
+          calculatedDeliveryFee = 2;
+        } else if (userGrade === 'PILOT') {
+          calculatedDeliveryFee = 1;
+        } else if (userGrade === 'COMMANDER') {
+          calculatedDeliveryFee = 0;
+        }
       }
     }
 
