@@ -1,15 +1,24 @@
 # 🧀 Moon Cheese 프로젝트 TIL
 
-> React Context API, 전역 상태 관리, 그리고 비동기 처리 학습 기록
+> React Context API, 전역 상태 관리, 비동기 처리, 이벤트 처리 학습 기록
 
 ---
 
 ## 📅 학습 날짜
-2025-10-03
+2025-10-03 ~ 2025-10-04
 
 ---
 
-## 🎯 구현한 기능
+## 📖 목차
+
+- [Chapter 1: 전역 상태 관리와 API 연동](#chapter-1-전역-상태-관리와-api-연동)
+- [Chapter 2: 장바구니 시스템과 이벤트 처리](#chapter-2-장바구니-시스템과-이벤트-처리)
+
+---
+
+# Chapter 1: 전역 상태 관리와 API 연동
+
+## 🎯 구현한 기능 (1차 이터레이션)
 
 1. ✅ 환율 정보를 서버에서 불러와 전역 상태로 관리
 2. ✅ 통화 선택 기능 (USD ↔ KRW)
@@ -866,25 +875,655 @@ export interface GradePointResponse {
 
 ---
 
+## 📌 Chapter 1 요약
+
+- ✅ Context API로 전역 상태 관리
+- ✅ Promise.all로 병렬 API 호출
+- ✅ 타입 안전성 확보
+- ✅ 에러 처리 패턴 학습
+- ✅ SOLID 원칙 이해
+
+---
+
+# Chapter 2: 장바구니 시스템과 이벤트 처리
+
+## 🎯 구현한 기능 (2차 이터레이션)
+
+1. ✅ 상품 목록 API 연동 및 카테고리 필터링
+2. ✅ 장바구니 전역 상태 관리 (CartProvider)
+3. ✅ Counter 컴포넌트로 수량 조절
+4. ✅ 재고/수량 기반 버튼 비활성화
+5. ✅ Header 장바구니 뱃지 실시간 업데이트
+6. ✅ 이벤트 버블링 제어 (stopPropagation)
+7. ✅ 카테고리별 태그 표시 (글루텐/카페인 프리)
+
+---
+
+## 📚 학습 내용
+
+### 1️⃣ 장바구니 Context 설계
+
+#### ❓ 장바구니는 어떤 데이터를 관리해야 할까?
+
+**요구사항 분석:**
+- 어떤 상품을 담았는지 → `productId`
+- 몇 개 담았는지 → `quantity`
+- 추가/제거/조회 기능 필요
+
+**타입 설계:**
+```typescript
+type CartItem = {
+  productId: number;
+  quantity: number;
+};
+
+type CartContextType = {
+  items: CartItem[];
+  addItem: (productId: number) => void;
+  removeItem: (productId: number) => void;
+  getItemQuantity: (productId: number) => number;
+  getTotalQuantity: () => number;
+};
+```
+
+---
+
+#### 🔧 CartProvider 구현
+
+```typescript
+// src/providers/CartProvider.tsx
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<CartItem[]>([]);
+
+  // 상품 추가 (수량 +1)
+  const addItem = (productId: number) => {
+    setItems(prev => {
+      const existingItem = prev.find(item => item.productId === productId);
+
+      if (existingItem) {
+        // 이미 있으면 수량 +1
+        return prev.map(item =>
+          item.productId === productId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        // 없으면 새로 추가
+        return [...prev, { productId, quantity: 1 }];
+      }
+    });
+  };
+
+  // 상품 제거 (수량 -1)
+  const removeItem = (productId: number) => {
+    setItems(prev => {
+      const existingItem = prev.find(item => item.productId === productId);
+
+      if (!existingItem) return prev;
+
+      if (existingItem.quantity === 1) {
+        // 수량이 1이면 아이템 제거
+        return prev.filter(item => item.productId !== productId);
+      } else {
+        // 수량 -1
+        return prev.map(item =>
+          item.productId === productId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        );
+      }
+    });
+  };
+
+  // 특정 상품의 수량 조회
+  const getItemQuantity = (productId: number): number => {
+    const item = items.find(item => item.productId === productId);
+    return item ? item.quantity : 0;
+  };
+
+  // 전체 수량 조회
+  const getTotalQuantity = (): number => {
+    return items.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const value = {
+    items,
+    addItem,
+    removeItem,
+    getItemQuantity,
+    getTotalQuantity,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+```
+
+---
+
+#### 💡 핵심 포인트
+
+**1. 불변성 유지**
+```typescript
+// ❌ 나쁜 예
+existingItem.quantity++;
+items.push(newItem);
+
+// ✅ 좋은 예
+return prev.map(item => ({ ...item, quantity: item.quantity + 1 }));
+return [...prev, newItem];
+```
+
+**2. find vs filter**
+```typescript
+// 하나 찾기
+const item = items.find(item => item.productId === productId);
+
+// 제거 (해당 항목 빼고 나머지 반환)
+return items.filter(item => item.productId !== productId);
+```
+
+**3. reduce로 합계 계산**
+```typescript
+const total = items.reduce((sum, item) => sum + item.quantity, 0);
+// [{ quantity: 2 }, { quantity: 3 }] → 5
+```
+
+---
+
+### 2️⃣ 이벤트 버블링과 stopPropagation
+
+#### ❓ 이벤트 버블링이 뭐야?
+
+클릭 이벤트는 **자식 → 부모** 순서로 자동 전파돼요!
+
+```
+사용자 클릭
+     │
+     ▼
+┌─────────────────────┐
+│  ProductItem.Root   │ ◄── 3. 여기까지 전파됨!
+│  onClick={...}      │     (상품 상세 페이지로 이동)
+│                     │
+│  ┌───────────────┐  │
+│  │ Counter.Plus  │  │ ◄── 1. 먼저 클릭됨
+│  │ onClick={...} │  │     (장바구니 추가)
+│  └───────────────┘  │
+│         ▲           │
+│         │           │
+│    2. 이벤트 전파!  │
+└─────────────────────┘
+```
+
+---
+
+#### 💥 문제 상황
+
+**stopPropagation 없을 때:**
+```typescript
+<ProductItem.Root onClick={() => handleClickProduct(product.id)}>
+  <Counter.Plus onClick={() => addItem(product.id)} />
+</ProductItem.Root>
+```
+
+**버튼 클릭 시:**
+1. `addItem()` 실행 ✅
+2. 이벤트가 부모로 전파 ⚠️
+3. `handleClickProduct()` 실행 😱
+4. 상품 상세 페이지로 이동 (의도하지 않음!)
+
+---
+
+#### ✅ 해결: stopPropagation
+
+```typescript
+<ProductItem.Root onClick={() => handleClickProduct(product.id)}>
+  <Counter.Plus onClick={(e) => {
+    e.stopPropagation();  // 🛑 전파 중단!
+    addItem(product.id);
+  }} />
+</ProductItem.Root>
+```
+
+**버튼 클릭 시:**
+1. `addItem()` 실행 ✅
+2. `stopPropagation()` 실행 🛑
+3. 부모로 전파 안 됨 ✅
+4. 페이지 이동 안 함 ✅
+
+---
+
+#### 📊 preventDefault vs stopPropagation
+
+| 함수 | 역할 | 사용 예시 |
+|------|------|----------|
+| **preventDefault()** | 브라우저 기본 동작 막기 | • Form 제출 시 새로고침 방지<br>• 링크 클릭 시 이동 방지<br>• 우클릭 메뉴 막기 |
+| **stopPropagation()** | 이벤트 전파(버블링) 막기 | • 부모 클릭 이벤트 실행 방지<br>• 중첩된 클릭 이벤트 처리<br>• 모달 내부 클릭 시 닫힘 방지 |
+
+---
+
+#### 🎯 실전 예시
+
+```typescript
+// 예시 1: 모달
+<div onClick={closeModal}>  {/* 배경 */}
+  <div onClick={(e) => e.stopPropagation()}>  {/* 모달 */}
+    모달 내용 클릭해도 안 닫힘!
+  </div>
+</div>
+
+// 예시 2: 드롭다운
+<div onClick={closeDropdown}>  {/* 전체 화면 */}
+  <div onClick={(e) => e.stopPropagation()}>
+    메뉴 클릭해도 안 닫힘!
+  </div>
+</div>
+
+// 예시 3: 우리 코드
+<ProductItem.Root onClick={goToDetail}>
+  <Counter.Plus onClick={(e) => {
+    e.stopPropagation();  // 상세 페이지 이동 막기
+    addToCart();          // 장바구니만 추가
+  }} />
+</ProductItem.Root>
+```
+
+---
+
+### 3️⃣ Context.Provider의 정체
+
+#### 🤔 CartContext.Provider는 어디서 나오는 거야?
+
+```typescript
+const CartContext = createContext<CartContextType | null>(null);
+//    ^^^^^^^^^^^^
+//    { Provider, Consumer, ... } 객체 반환!
+```
+
+**createContext가 반환하는 것:**
+```typescript
+const CartContext = {
+  Provider: Component,  // ← React가 자동으로 만들어줌!
+  Consumer: Component,
+  displayName: string,
+  // ...
+}
+```
+
+---
+
+#### 📊 시각화
+
+```
+createContext() 호출
+      ↓
+┌─────────────────────┐
+│   CartContext       │  ← 객체가 반환됨!
+├─────────────────────┤
+│ • Provider          │  ← 컴포넌트 (데이터 제공자)
+│ • Consumer          │  ← 컴포넌트 (거의 안 씀)
+│ • displayName       │
+└─────────────────────┘
+      ↓
+사용: <CartContext.Provider>
+```
+
+---
+
+#### 💡 왜 CartProvider를 따로 만들까?
+
+**React 기본 Provider 직접 사용:**
+```typescript
+// ❌ 복잡함
+<CartContext.Provider value={{
+  items: items,
+  addItem: addItem,
+  removeItem: removeItem,
+  getItemQuantity: getItemQuantity,
+  getTotalQuantity: getTotalQuantity
+}}>
+  <App />
+</CartContext.Provider>
+```
+
+**우리가 만든 CartProvider:**
+```typescript
+// ✅ 간단함!
+<CartProvider>
+  <App />
+</CartProvider>
+```
+
+**장점:**
+1. 사용이 간단함
+2. 로직을 Provider 안에 캡슐화
+3. useState, 함수들을 내부에서 관리
+
+---
+
+### 4️⃣ 배열 메서드 활용
+
+#### 🎨 find - 조건에 맞는 첫 번째 요소 찾기
+
+```typescript
+const existingItem = items.find(item => item.productId === productId);
+// 있으면: { productId: 1, quantity: 3 }
+// 없으면: undefined
+```
+
+---
+
+#### 🎨 filter - 조건에 맞는 모든 요소 반환
+
+```typescript
+// 특정 항목 제거 (해당 항목 빼고 나머지)
+const newItems = items.filter(item => item.productId !== productId);
+
+// 카테고리 필터링
+const cheeseProducts = products.filter(p => p.category === 'CHEESE');
+```
+
+---
+
+#### 🎨 map - 모든 요소 변환
+
+```typescript
+// 수량 증가
+const updated = items.map(item =>
+  item.productId === productId
+    ? { ...item, quantity: item.quantity + 1 }  // 조건 맞으면 변경
+    : item                                       // 아니면 그대로
+);
+```
+
+---
+
+#### 🎨 reduce - 누적 계산
+
+```typescript
+// 총 수량 계산
+const total = items.reduce((sum, item) => sum + item.quantity, 0);
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//                          이전 합계 + 현재 아이템 수량
+
+// 예시: [{ quantity: 2 }, { quantity: 3 }, { quantity: 1 }]
+// 0 + 2 = 2
+// 2 + 3 = 5
+// 5 + 1 = 6
+// 결과: 6
+```
+
+---
+
+### 5️⃣ 조건부 렌더링과 비활성화
+
+#### 🎯 재고 기반 버튼 비활성화
+
+```typescript
+<Counter.Plus
+  disabled={quantity >= product.stock}  // 재고보다 많으면 비활성화
+  onClick={(e) => {
+    e.stopPropagation();
+    addItem(product.id);
+  }}
+/>
+```
+
+**동작:**
+- 재고 3개, 현재 수량 0 → 활성화 ✅
+- 재고 3개, 현재 수량 2 → 활성화 ✅
+- 재고 3개, 현재 수량 3 → 비활성화 ⚠️
+
+---
+
+#### 🎯 수량 0일 때 - 버튼 비활성화
+
+```typescript
+<Counter.Minus
+  disabled={quantity === 0}  // 0개면 비활성화
+  onClick={(e) => {
+    e.stopPropagation();
+    removeItem(product.id);
+  }}
+/>
+```
+
+---
+
+#### 🎯 조건부 태그 표시
+
+```typescript
+let freeTagType: 'milk' | 'caffeine' | 'gluten' | undefined;
+
+if (product.isGlutenFree) {
+  freeTagType = 'gluten';
+} else if (product.isCaffeineFree) {
+  freeTagType = 'caffeine';
+}
+
+// 조건부 렌더링
+{freeTagType && <ProductItem.FreeTag type={freeTagType} />}
+```
+
+---
+
+## 🎨 아키텍처 다이어그램
+
+### 전체 시스템 구조
+
+```
+┌─────────────────────────────────────────────────┐
+│                   App.tsx                       │
+│  ┌───────────────────────────────────────────┐  │
+│  │         GlobalProvider                    │  │
+│  │  ┌─────────────────────────────────────┐  │  │
+│  │  │      CurrencyProvider               │  │  │
+│  │  │  (환율, 가격 변환)                   │  │  │
+│  │  └─────────────────────────────────────┘  │  │
+│  │  ┌─────────────────────────────────────┐  │  │
+│  │  │      CartProvider                   │  │  │
+│  │  │                                     │  │  │
+│  │  │  State: items[]                     │  │  │
+│  │  │  • addItem()                        │  │  │
+│  │  │  • removeItem()                     │  │  │
+│  │  │  • getItemQuantity()                │  │  │
+│  │  │  • getTotalQuantity()               │  │  │
+│  │  └─────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+    ┌─────▼─────┐         ┌──────▼──────┐
+    │  Header   │         │  HomePage   │
+    │           │         │             │
+    │  Badge    │         │ ProductList │
+    │  (총수량) │         │             │
+    └─────▲─────┘         └──────┬──────┘
+          │                      │
+          │                      │
+          │              ┌───────▼────────┐
+          │              │ ProductItem    │
+          │              │ • Counter +/-  │
+          │              │ • 재고 체크    │
+          │              └───────┬────────┘
+          │                      │
+          └──────────────────────┘
+              getTotalQuantity()
+              getItemQuantity()
+```
+
+---
+
+### 이벤트 전파 흐름
+
+```
+사용자가 + 버튼 클릭
+        │
+        ▼
+┌────────────────────────────────┐
+│ ProductItem.Root               │
+│ onClick: 상품 상세 페이지 이동  │ ◄─ 실행 안 됨! (stopPropagation)
+│                                │
+│  ┌──────────────────────────┐  │
+│  │ Counter.Plus             │  │
+│  │ onClick:                 │  │ ◄─ 클릭!
+│  │  1. stopPropagation() 🛑│  │
+│  │  2. addItem()           │  │
+│  └──────────────────────────┘  │
+│             X (전파 차단!)     │
+└────────────────────────────────┘
+        │
+        ▼
+┌────────────────────────────────┐
+│ CartProvider                   │
+│ • items 업데이트                │
+│ • quantity + 1                 │
+└────────────────────────────────┘
+        │
+        ▼ (자동 리렌더링)
+┌────────────────────────────────┐
+│ Header Badge                   │
+│ • getTotalQuantity() 호출      │
+│ • 뱃지 숫자 업데이트            │
+└────────────────────────────────┘
+```
+
+---
+
+## 🐛 트러블슈팅
+
+### 문제 1: 버튼 클릭 시 상세 페이지로 이동
+
+**증상:**
+장바구니 +/- 버튼을 누르면 상품 상세 페이지로 이동해버림
+
+**원인:**
+이벤트 버블링으로 부모의 onClick도 실행됨
+
+**해결:**
+```typescript
+<Counter.Plus onClick={(e) => {
+  e.stopPropagation();  // 추가!
+  addItem(product.id);
+}} />
+```
+
+---
+
+### 문제 2: 필터링이 동작 안 함
+
+**증상:**
+카테고리 탭을 눌러도 전체 상품이 표시됨
+
+**원인:**
+`products` 대신 `filteredProducts`를 사용해야 함
+
+**해결:**
+```typescript
+// ❌ 잘못된 코드
+{products.map(product => ...)}
+
+// ✅ 올바른 코드
+{filteredProducts.map(product => ...)}
+```
+
+---
+
+### 문제 3: FreeTag 위치 오류
+
+**증상:**
+태그가 레이아웃을 벗어남
+
+**원인:**
+`Meta` 컴포넌트 밖에 FreeTag를 배치
+
+**해결:**
+```typescript
+// ❌ 잘못된 코드
+</ProductItem.Meta>
+{freeTagType && <ProductItem.FreeTag type={freeTagType} />}
+
+// ✅ 올바른 코드
+<ProductItem.Meta>
+  <ProductItem.MetaLeft>...</ProductItem.MetaLeft>
+  {freeTagType && <ProductItem.FreeTag type={freeTagType} />}
+</ProductItem.Meta>
+```
+
+---
+
+## 💡 핵심 개념 정리
+
+### 장바구니 Context
+- **목적:** 전역 장바구니 상태 관리
+- **구성:** items 배열 + CRUD 함수들
+- **장점:** 컴포넌트 간 상태 공유 쉬움
+- **주의:** 불변성 유지 필수!
+
+### 이벤트 버블링
+- **개념:** 이벤트가 자식 → 부모로 자동 전파
+- **문제:** 의도하지 않은 이벤트 실행
+- **해결:** stopPropagation()으로 전파 차단
+- **구분:** preventDefault()와 다름!
+
+### 배열 메서드
+- **find:** 조건에 맞는 첫 요소 찾기
+- **filter:** 조건에 맞는 모든 요소 반환
+- **map:** 모든 요소 변환
+- **reduce:** 누적 계산
+
+---
+
+## 🎓 배운 점
+
+1. **Context는 여러 개 만들 수 있다!**
+   - CurrencyProvider + CartProvider
+   - 각자 독립적으로 동작
+   - GlobalProvider에서 통합
+
+2. **이벤트 버블링을 이해하면 복잡한 UI도 쉽게!**
+   - stopPropagation()의 중요성
+   - 중첩된 클릭 영역 처리
+   - 모달/드롭다운/카드 등에 활용
+
+3. **배열 메서드는 불변성의 핵심!**
+   - map으로 업데이트
+   - filter로 삭제
+   - find로 검색
+   - reduce로 합계
+
+4. **조건부 렌더링의 다양한 활용!**
+   - disabled 속성
+   - && 연산자
+   - 삼항 연산자
+
+5. **타입 설계는 요구사항에서!**
+   - 무엇을 저장할지
+   - 어떤 기능이 필요한지
+   - 서버 데이터 구조는 어떤지
+
+---
+
 ## 📌 다음에 해볼 것
 
-- [ ] ProductListSection API 연동
-- [ ] 장바구니 기능 구현
 - [ ] 상품 상세 페이지 완성
-- [ ] React Query로 리팩토링 (캐싱, 자동 재시도)
-- [ ] Error Boundary 적용 (전역 에러 처리)
+- [ ] 장바구니 페이지 구현
+- [ ] LocalStorage에 장바구니 저장
+- [ ] 결제 기능 구현
+- [ ] React Query로 리팩토링
+- [ ] 낙관적 업데이트 적용
 
 ---
 
 ## 🔗 참고 자료
 
 - [React Context 공식 문서](https://react.dev/reference/react/createContext)
-- [Promise.all MDN](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [이벤트 버블링 MDN](https://developer.mozilla.org/ko/docs/Learn/JavaScript/Building_blocks/Events#event_bubbling_and_capture)
+- [배열 메서드 MDN](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Array)
 - Moon Cheese 프로젝트 코드
-  - [CurrencyProvider.tsx](src/providers/CurrencyProvider.tsx)
-  - [CurrentLevelSection.tsx](src/pages/HomePage/components/CurrentLevelSection.tsx)
-  - [handlers.ts](src/server/handlers.ts)
+  - [CartProvider.tsx](src/providers/CartProvider.tsx)
+  - [ProductListSection.tsx](src/pages/HomePage/components/ProductListSection.tsx)
+  - [Header.tsx](src/layout/Header.tsx)
 
 ---
 

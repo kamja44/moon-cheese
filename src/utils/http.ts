@@ -29,6 +29,22 @@ export interface RecentProductsResponse {
   }[];
 }
 
+export interface ProductsResponse {
+  products: {
+    id: number;
+    name: string;
+    category: 'CHEESE' | 'CRACKER' | 'TEA';
+    stock: number;
+    price: number;
+    description: string;
+    detailDescription: string;
+    images: string[];
+    rating: number;
+    isGlutenFree?: boolean;
+    isCaffeineFree?: boolean;
+  }[];
+}
+
 export const http = {
   get: function get<Response = unknown>(url: string) {
     return axios.get<Response>(url).then(res => res.data);
