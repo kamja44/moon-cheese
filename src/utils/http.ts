@@ -1,6 +1,34 @@
 import Axios from 'axios';
 const axios = Axios.create();
 
+export interface ExchangeRateResponse {
+  exchangeRate: {
+    KRW: number;
+    USD: number;
+  };
+}
+
+export interface UserInfoResponse {
+  point: number;
+  grade: 'EXPLORER' | 'PILOT' | 'COMMANDER';
+}
+
+export interface GradePointResponse {
+  gradePointList: {
+    type: 'EXPLORER' | 'PILOT' | 'COMMANDER';
+    minPoint: number;
+  }[];
+}
+
+export interface RecentProductsResponse {
+  recentProducts: {
+    id: number;
+    thumbnail: string;
+    name: string;
+    price: number;
+  }[];
+}
+
 export const http = {
   get: function get<Response = unknown>(url: string) {
     return axios.get<Response>(url).then(res => res.data);
