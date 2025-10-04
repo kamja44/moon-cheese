@@ -25,7 +25,7 @@ function CheckoutSection({ selectedDeliveryMethod }: CheckoutSectionProps) {
   const [loading, setLoading] = useState(true);
 
   const { items, getTotalQuantity } = useCart();
-  const { symbol, convertPrice, formatPrice } = useCurrency();
+  const { formatCurrency } = useCurrency();
 
   // 상품 목록 조회
   useEffect(() => {
@@ -75,11 +75,6 @@ function CheckoutSection({ selectedDeliveryMethod }: CheckoutSectionProps) {
   const deliveryFee = calculateDeliveryFee(itemsTotal);
   const totalPrice = itemsTotal + deliveryFee;
 
-  // USD => KRW
-  const convertedItemsTotal = convertPrice(itemsTotal);
-  const convertedDeliveryFee = convertPrice(deliveryFee);
-  const convertedTotalPrice = convertPrice(totalPrice);
-
   const totalQuantity = getTotalQuantity();
 
   const onClickPurchase = async () => {
@@ -128,16 +123,13 @@ function CheckoutSection({ selectedDeliveryMethod }: CheckoutSectionProps) {
             <Flex justify="space-between">
               <Text variant="B2_Regular">주문금액({totalQuantity}개)</Text>
               <Text variant="B2_Bold" color="state.green">
-                {symbol}
-                {formatPrice(convertedItemsTotal)}
+                {formatCurrency(itemsTotal)}
               </Text>
             </Flex>
             <Spacing size={3} />
             <Flex justify="space-between">
               <Text variant="B2_Regular">배송비</Text>
-              <Text variant="B2_Bold">
-                {deliveryFee === 0 ? '무료' : `${symbol}${formatPrice(convertedDeliveryFee)}`}
-              </Text>
+              <Text variant="B2_Bold">{deliveryFee === 0 ? '무료' : formatCurrency(deliveryFee)}</Text>
             </Flex>
           </Box>
 
@@ -145,10 +137,7 @@ function CheckoutSection({ selectedDeliveryMethod }: CheckoutSectionProps) {
 
           <HStack justify="space-between">
             <Text variant="H2_Bold">총 금액</Text>
-            <Text variant="H2_Bold">
-              {symbol}
-              {formatPrice(convertedTotalPrice)}
-            </Text>
+            <Text variant="H2_Bold">{formatCurrency(totalPrice)}</Text>
           </HStack>
         </Stack>
 

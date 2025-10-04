@@ -15,11 +15,10 @@ type ProductInfoSectionProps = {
 };
 
 function ProductInfoSection({ productId, name, category, rating, price, quantity }: ProductInfoSectionProps) {
-  const { symbol, convertPrice, formatPrice } = useCurrency();
+  const { formatCurrency } = useCurrency();
   const { getItemQuantity, addItem, removeItem } = useCart();
   const [localQuantity, setLocalQuantity] = useState(1);
 
-  const convertedPrice = convertPrice(price);
   const cartQuantity = getItemQuantity(productId);
   const isInCart = cartQuantity > 0;
 
@@ -44,10 +43,7 @@ function ProductInfoSection({ productId, name, category, rating, price, quantity
           <RatingGroup value={rating} readOnly label={`${rating.toFixed(1)}`} />
         </Stack>
         <Spacing size={4} />
-        <Text variant="H1_Bold">
-          {symbol}
-          {formatPrice(convertedPrice)}
-        </Text>
+        <Text variant="H1_Bold">{formatCurrency(price)}</Text>
       </Box>
 
       <Spacing size={5} />

@@ -5,7 +5,7 @@ import { useRecentProducts } from '@/hooks/useRecentProducts';
 
 function RecentPurchaseSection() {
   // 현재 선택된 값($,원), 환율
-  const { symbol, convertPrice, formatPrice } = useCurrency();
+  const { formatCurrency } = useCurrency();
   const { products, loading, error } = useRecentProducts();
 
   if (loading) {
@@ -55,7 +55,6 @@ function RecentPurchaseSection() {
         direction={'column'}
       >
         {products.map(product => {
-          const price = convertPrice(product.price);
           return (
             <Flex
               css={{
@@ -75,10 +74,7 @@ function RecentPurchaseSection() {
               />
               <Flex flexDir="column" gap={1}>
                 <Text variant="B2_Medium">{product.name}</Text>
-                <Text variant="H1_Bold">
-                  {symbol}
-                  {formatPrice(price)}
-                </Text>
+                <Text variant="H1_Bold">{formatCurrency(product.price)}</Text>
               </Flex>
             </Flex>
           );

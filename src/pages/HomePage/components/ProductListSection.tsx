@@ -11,7 +11,7 @@ import { useProducts } from '@/hooks/useProducts';
 function ProductListSection() {
   const [currentTab, setCurrentTab] = useState('all');
 
-  const { convertPrice, formatPrice, symbol } = useCurrency();
+  const { formatCurrency } = useCurrency();
   const { addItem, removeItem, getItemQuantity } = useCart();
   const { products, loading, error, refetch } = useProducts();
   const navigate = useNavigate();
@@ -70,7 +70,6 @@ function ProductListSection() {
       </SubGNB.Root>
       <Grid gridTemplateColumns="repeat(2, 1fr)" rowGap={9} columnGap={4} p={5}>
         {filteredProducts.map(product => {
-          const price = convertPrice(product.price);
           const quantity = getItemQuantity(product.id);
 
           // 추가 태그 설정
@@ -88,10 +87,7 @@ function ProductListSection() {
               <ProductItem.Meta>
                 <ProductItem.MetaLeft>
                   <ProductItem.Rating rating={product.rating} />
-                  <ProductItem.Price>
-                    {symbol}
-                    {formatPrice(price)}
-                  </ProductItem.Price>
+                  <ProductItem.Price>{formatCurrency(product.price)}</ProductItem.Price>
                 </ProductItem.MetaLeft>
                 {nonTagType && <ProductItem.FreeTag type={nonTagType} />}
               </ProductItem.Meta>

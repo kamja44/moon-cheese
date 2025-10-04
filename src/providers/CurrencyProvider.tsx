@@ -9,6 +9,7 @@ type CurrencyContextType = {
   convertPrice: (usdPrice: number) => number;
   formatPrice: (price: number) => string;
   symbol: string;
+  formatCurrency: (usdPrice: number) => string;
 };
 
 const CurrencyContext = createContext<CurrencyContextType | null>(null);
@@ -38,6 +39,12 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
   const symbol = currency === 'USD' ? '$' : '₩';
 
+  const formatCurrency = (usdPrice: number) => {
+    const converted = convertPrice(usdPrice);
+    const formatted = formatPrice(converted);
+    return `${symbol}${formatted}`;
+  };
+
   // Context에 제공할 값
   const value = {
     currency,
@@ -46,6 +53,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     convertPrice,
     formatPrice,
     symbol,
+    formatCurrency,
   };
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;

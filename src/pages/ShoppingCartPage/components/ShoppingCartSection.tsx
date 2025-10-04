@@ -7,7 +7,7 @@ import ErrorSection from '@/components/ErrorSection';
 import { useProducts } from '@/hooks/useProducts';
 
 function ShoppingCartSection() {
-  const { symbol, convertPrice, formatPrice } = useCurrency();
+  const { formatCurrency } = useCurrency();
   const { items, addItem, removeItem, getItemQuantity } = useCart();
   const { products, loading, error, refetch } = useProducts();
 
@@ -70,7 +70,6 @@ function ShoppingCartSection() {
       >
         {cartProducts.map((product, index) => {
           const quantity = getItemQuantity(product.id);
-          const convertedPrice = convertPrice(product.price);
 
           const tagType = product.category.toLowerCase() as 'cheese' | 'cracker' | 'tea';
 
@@ -86,10 +85,7 @@ function ShoppingCartSection() {
                     onDelete={() => handleDeleteItem(product.id)}
                   />
                   <ShoppingCartItem.Footer>
-                    <ShoppingCartItem.Price>
-                      {symbol}
-                      {formatPrice(convertedPrice)}
-                    </ShoppingCartItem.Price>
+                    <ShoppingCartItem.Price> {formatCurrency(product.price)}</ShoppingCartItem.Price>
                     <Counter.Root>
                       <Counter.Minus onClick={() => removeItem(product.id)} disabled={quantity === 0} />
                       <Counter.Display value={quantity} />

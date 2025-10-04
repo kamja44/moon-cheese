@@ -16,7 +16,7 @@ function RecommendationSection({ productId }: RecommendationSectionProps) {
   const [recommendedProducts, setRecommendedProducts] = useState<ProductsResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { symbol, convertPrice, formatPrice } = useCurrency();
+  const { formatCurrency } = useCurrency();
   useEffect(() => {
     http
       .get<RecommendedProductsResponse>(`/api/product/recommend/${productId}`)
@@ -79,8 +79,6 @@ function RecommendationSection({ productId }: RecommendationSectionProps) {
 
       <HStack gap={1.5} overflowX="auto">
         {recommendedProducts.map(recommendedProduct => {
-          const price = convertPrice(recommendedProduct.price);
-
           return (
             <RecommendationProductItem.Root
               key={recommendedProduct.id}
@@ -89,8 +87,7 @@ function RecommendationSection({ productId }: RecommendationSectionProps) {
               <RecommendationProductItem.Image src={recommendedProduct.images[0]} alt={recommendedProduct.name} />
               <RecommendationProductItem.Info name={recommendedProduct.name} rating={recommendedProduct.rating} />
               <RecommendationProductItem.Price>
-                {symbol}
-                {formatPrice(price)}
+                {formatCurrency(recommendedProduct.price)}
               </RecommendationProductItem.Price>
             </RecommendationProductItem.Root>
           );
