@@ -3,31 +3,86 @@ import ProductDetailSection from './components/ProductDetailSection';
 import ProductInfoSection from './components/ProductInfoSection';
 import RecommendationSection from './components/RecommendationSection';
 import ThumbnailSection from './components/ThumbnailSection';
+import { useParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import { http, type ProductDetailResponse } from '@/utils/http';
+import { Box, styled } from 'styled-system/jsx';
+import { Text } from '@/ui-lib';
+import ErrorSection from '@/components/ErrorSection';
+
+interface ProductProps {
+  id: number;
+  name: string;
+  category: 'CHEESE' | 'CRACKER' | 'TEA';
+  stock: number;
+  price: number;
+  description: string;
+  detailDescription: string;
+  images: string[];
+  rating: number;
+  isGlutenFree?: boolean;
+  isCaffeineFree?: boolean;
+}
 
 function ProductDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [product, setProduct] = useState<ProductProps | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  // API 호출
+  useEffect(() => {
+    http
+      .get<ProductDetailResponse>(`/api/product/${id}`)
+      .then(data => setProduct(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  // 로딩 중
+  if (loading) {
+    return (
+      <styled.section bg="background.01_white">
+        <Box css={{ px: 5, pt: 5, pb: 4 }}>
+          <Text>로딩 중...</Text>
+        </Box>
+      </styled.section>
+    );
+  }
+
+  // 에러 발생
+  if (error) {
+    return (
+      <styled.section bg="background.01_white">
+        <Box p={5}>
+          <ErrorSection onRetry={() => window.location.reload()} />
+        </Box>
+      </styled.section>
+    );
+  }
+
+  if (!product) {
+    return null;
+  }
+
   return (
     <>
-      <ThumbnailSection
-        images={[
-          '/moon-cheese-images/cracker-1-1.jpg',
-          '/moon-cheese-images/cracker-1-2.jpg',
-          '/moon-cheese-images/cracker-1-3.jpg',
-          '/moon-cheese-images/cracker-1-4.jpg',
-        ]}
-      />
-      <ProductInfoSection name={'치즈홀 크래커'} category={'cracker'} rating={4.0} price={10.85} quantity={2} />
-
-      <Spacing size={2.5} />
-
-      <ProductDetailSection
-        description={
-          '"달 표면에서 가 수확한 특별한 구멍낸 크래커." 달의 분화구를 연상시키는 다지한과 고소한 풍미가 특징인 크래커. 치즈와의 궁합을 고려한 절묘한 비율로, 어느 데어링 메뉴도 잘 어울립니다.'
-        }
+      <ThumbnailSection images={product.images} />
+      <ProductInfoSection
+        productId={product.id}
+        name={product.name}
+        category={product.category.toLowerCase() as 'cheese' | 'cracker' | 'tea'}
+        rating={product.rating}
+        price={product.price}
+        quantity={product.stock}
       />
 
       <Spacing size={2.5} />
 
-      <RecommendationSection />
+      <ProductDetailSection description={product.description} />
+
+      <Spacing size={2.5} />
+
+      <RecommendationSection productId={product.id} />
     </>
   );
 }

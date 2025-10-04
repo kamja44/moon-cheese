@@ -1,8 +1,12 @@
+import { useCart } from '@/providers/CartProvider';
+import { useCurrency } from '@/providers/CurrencyProvider';
 import { Button, Counter, RatingGroup, Spacing, Text } from '@/ui-lib';
 import Tag, { type TagType } from '@/ui-lib/components/tag';
+import { useState } from 'react';
 import { Box, Divider, Flex, Stack, styled } from 'styled-system/jsx';
 
 type ProductInfoSectionProps = {
+  productId: number;
   name: string;
   category: TagType;
   rating: number;
@@ -10,7 +14,27 @@ type ProductInfoSectionProps = {
   quantity: number;
 };
 
-function ProductInfoSection({ name, category, rating, price, quantity }: ProductInfoSectionProps) {
+function ProductInfoSection({ productId, name, category, rating, price, quantity }: ProductInfoSectionProps) {
+  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { getItemQuantity, addItem, removeItem } = useCart();
+  const [localQuantity, setLocalQuantity] = useState(1);
+
+  const symbol = currency === 'USD' ? '$' : '₩';
+  const convertedPrice = convertPrice(price);
+  const cartQuantity = getItemQuantity(productId);
+  const isInCart = cartQuantity > 0;
+
+  const handleMinus = () => {
+    if (localQuantity > 1) {
+      setLocalQuantity(prev => prev - 1);
+    }
+  };
+  const handlePlus = () => {
+    if (localQuantity < quantity) {
+      setLocalQuantity(prev => prev + 1);
+    }
+  };
+
   return (
     <styled.section css={{ bg: 'background.01_white', p: 5 }}>
       {/* 상품 정보 */}
@@ -21,7 +45,10 @@ function ProductInfoSection({ name, category, rating, price, quantity }: Product
           <RatingGroup value={rating} readOnly label={`${rating.toFixed(1)}`} />
         </Stack>
         <Spacing size={4} />
-        <Text variant="H1_Bold">${price.toFixed(2)}</Text>
+        <Text variant="H1_Bold">
+          {symbol}
+          {formatPrice(convertedPrice)}
+        </Text>
       </Box>
 
       <Spacing size={5} />
@@ -36,18 +63,45 @@ function ProductInfoSection({ name, category, rating, price, quantity }: Product
           </Text>
         </Flex>
         <Counter.Root>
-          <Counter.Minus onClick={() => {}} disabled={true} />
-          <Counter.Display value={3} />
-          <Counter.Plus onClick={() => {}} />
+          <Counter.Minus
+            onClick={event => {
+              event.stopPropagation();
+              handleMinus();
+            }}
+            disabled={localQuantity <= 1 || isInCart}
+          />
+          <Counter.Display value={localQuantity} />
+          <Counter.Plus
+            onClick={event => {
+              event.stopPropagation();
+              handlePlus();
+            }}
+            disabled={localQuantity >= quantity || isInCart}
+          />
         </Counter.Root>
       </Flex>
 
       <Spacing size={5} />
 
       {/* 장바구니 버튼 */}
-      <Button fullWidth color="primary" size="lg">
-        장바구니
-      </Button>
+      {isInCart ? (
+        <Button fullWidth color="primary" size="lg" onClick={() => removeItem(productId)}>
+          장바구니에서 제거
+        </Button>
+      ) : (
+        <Button
+          fullWidth
+          color="primary"
+          size="lg"
+          onClick={() => {
+            for (let i = 0; i < localQuantity; i++) {
+              addItem(productId);
+            }
+          }}
+        >
+          장바구니담기
+        </Button>
+      )}
     </styled.section>
   );
 }

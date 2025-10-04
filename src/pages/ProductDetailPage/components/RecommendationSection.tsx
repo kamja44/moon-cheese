@@ -2,13 +2,74 @@ import { Spacing, Text } from '@/ui-lib';
 import { useNavigate } from 'react-router';
 import { HStack, styled } from 'styled-system/jsx';
 import RecommendationProductItem from './RecommendationProductItem';
+import { useEffect, useState } from 'react';
+import { http, type ProductsResponse, type RecommendedProductsResponse } from '@/utils/http';
+import { useCurrency } from '@/providers/CurrencyProvider';
+import ErrorSection from '@/components/ErrorSection';
 
-function RecommendationSection() {
+type RecommendationSectionProps = {
+  productId: number;
+};
+
+function RecommendationSection({ productId }: RecommendationSectionProps) {
+  const [recommendedProducts, setRecommendedProducts] = useState<ProductsResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const { currency, convertPrice, formatPrice } = useCurrency();
+  const symbol = currency === 'USD' ? '$' : '₩';
+  useEffect(() => {
+    http
+      .get<RecommendedProductsResponse>(`/api/product/recommend/${productId}`)
+      .then(data => {
+        const recommendIds = data.recommendProductIds;
+
+        // 전체 상품 목록 가져오기
+        return http.get<{ products: ProductsResponse[] }>(`/api/product/list`).then(productData => {
+          // 추천 ID에 해당하는 상품 필터링
+          const filtered = productData.products.filter(product => recommendIds.includes(product.id));
+          setRecommendedProducts(filtered);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        setError(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [productId]);
+
   const navigate = useNavigate();
 
   const handleClickProduct = (productId: number) => {
     navigate(`/product/${productId}`);
   };
+
+  // 로딩 중
+  if (loading) {
+    return (
+      <styled.section css={{ bg: 'background.01_white', px: 5, pt: 5, pb: 6 }}>
+        <Text variant="H2_Bold">추천 제품</Text>
+        <Spacing size={4} />
+        <Text>로딩 중...</Text>
+      </styled.section>
+    );
+  }
+
+  if (error) {
+    return (
+      <styled.section css={{ bg: 'background.01_white', px: 5, pt: 5, pb: 6 }}>
+        <Text variant="H2_Bold">추천 제품</Text>
+        <Spacing size={4} />
+        <ErrorSection onRetry={() => window.location.reload()} />
+      </styled.section>
+    );
+  }
+
+  // 추천 상품 없음
+  if (recommendedProducts.length === 0) {
+    return null;
+  }
 
   return (
     <styled.section css={{ bg: 'background.01_white', px: 5, pt: 5, pb: 6 }}>
@@ -17,29 +78,23 @@ function RecommendationSection() {
       <Spacing size={4} />
 
       <HStack gap={1.5} overflowX="auto">
-        <RecommendationProductItem.Root onClick={() => handleClickProduct(1)}>
-          <RecommendationProductItem.Image
-            src="/moon-cheese-images/cheese-1-1.jpg"
-            alt="월레스의 오리지널 웬슬리데일"
-          />
-          <RecommendationProductItem.Info name="월레스의 오리지널 웬슬리데일" rating={4.0} />
-          <RecommendationProductItem.Price>$12.99</RecommendationProductItem.Price>
-        </RecommendationProductItem.Root>
+        {recommendedProducts.map(recommendedProduct => {
+          const price = convertPrice(recommendedProduct.price);
 
-        <RecommendationProductItem.Root onClick={() => handleClickProduct(2)}>
-          <RecommendationProductItem.Image
-            src="/moon-cheese-images/tea-1-1.jpg"
-            alt="그로밋의 잉글리쉬 브렉퍼스트 티"
-          />
-          <RecommendationProductItem.Info name="그로밋의 잉글리쉬 브렉퍼스트 티" rating={4.0} />
-          <RecommendationProductItem.Price>$6.75</RecommendationProductItem.Price>
-        </RecommendationProductItem.Root>
-
-        <RecommendationProductItem.Root onClick={() => handleClickProduct(3)}>
-          <RecommendationProductItem.Image src="/moon-cheese-images/cheese-3-1.jpg" alt="크래이머 블루 치즈" />
-          <RecommendationProductItem.Info name="크래이머 블루 치즈" rating={4.0} />
-          <RecommendationProductItem.Price>$15.75</RecommendationProductItem.Price>
-        </RecommendationProductItem.Root>
+          return (
+            <RecommendationProductItem.Root
+              key={recommendedProduct.id}
+              onClick={() => handleClickProduct(recommendedProduct.id)}
+            >
+              <RecommendationProductItem.Image src={recommendedProduct.images[0]} alt={recommendedProduct.name} />
+              <RecommendationProductItem.Info name={recommendedProduct.name} rating={recommendedProduct.rating} />
+              <RecommendationProductItem.Price>
+                {symbol}
+                {formatPrice(price)}
+              </RecommendationProductItem.Price>
+            </RecommendationProductItem.Root>
+          );
+        })}
       </HStack>
     </styled.section>
   );
