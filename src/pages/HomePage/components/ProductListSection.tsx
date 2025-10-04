@@ -7,6 +7,7 @@ import { useCurrency } from '@/providers/CurrencyProvider';
 import { useCart } from '@/providers/CartProvider';
 import ErrorSection from '@/components/ErrorSection';
 import { useProducts } from '@/hooks/useProducts';
+import { getFreeTagType } from '@/utils/product';
 
 function ProductListSection() {
   const [currentTab, setCurrentTab] = useState('all');
@@ -71,15 +72,7 @@ function ProductListSection() {
       <Grid gridTemplateColumns="repeat(2, 1fr)" rowGap={9} columnGap={4} p={5}>
         {filteredProducts.map(product => {
           const quantity = getItemQuantity(product.id);
-
-          // 추가 태그 설정
-          let nonTagType: 'milk' | 'caffeine' | 'gluten' | undefined;
-
-          if (product.isGlutenFree) {
-            nonTagType = 'gluten';
-          } else if (product.isCaffeineFree) {
-            nonTagType = 'caffeine';
-          }
+          const freeTagType = getFreeTagType(product);
           return (
             <ProductItem.Root key={product.id} onClick={() => handleClickProduct(product.id)}>
               <ProductItem.Image src={product.images[0]} alt={product.name} />
@@ -89,7 +82,7 @@ function ProductListSection() {
                   <ProductItem.Rating rating={product.rating} />
                   <ProductItem.Price>{formatCurrency(product.price)}</ProductItem.Price>
                 </ProductItem.MetaLeft>
-                {nonTagType && <ProductItem.FreeTag type={nonTagType} />}
+                {freeTagType && <ProductItem.FreeTag type={freeTagType} />}
               </ProductItem.Meta>
               <Counter.Root>
                 <Counter.Minus
