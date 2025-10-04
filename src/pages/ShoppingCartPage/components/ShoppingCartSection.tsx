@@ -8,14 +8,12 @@ import { useCart } from '@/providers/CartProvider';
 import ErrorSection from '@/components/ErrorSection';
 
 function ShoppingCartSection() {
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { symbol, convertPrice, formatPrice } = useCurrency();
   const { items, addItem, removeItem, getItemQuantity } = useCart();
 
   const [products, setProducts] = useState<ProductListResponse['products']>([]);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const symbol = currency === 'USD' ? '$' : '₩';
 
   useEffect(() => {
     http

@@ -27,7 +27,7 @@ function ProductListSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { convertPrice, formatPrice, symbol } = useCurrency();
   const { addItem, removeItem, getItemQuantity } = useCart();
   const navigate = useNavigate();
 
@@ -48,8 +48,6 @@ function ProductListSection() {
   const handleClickProduct = (productId: number) => {
     navigate(`/product/${productId}`);
   };
-
-  const symbol = currency === 'USD' ? '$' : '₩';
 
   const filteredProducts = products.filter(product => {
     if (currentTab === 'all') {

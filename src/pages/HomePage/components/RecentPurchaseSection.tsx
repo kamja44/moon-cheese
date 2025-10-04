@@ -13,12 +13,10 @@ type RecentProduct = {
 
 function RecentPurchaseSection() {
   // 현재 선택된 값($,원), 환율
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { symbol, convertPrice, formatPrice } = useCurrency();
   const [products, setProducts] = useState<RecentProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
-  const symbol = currency === 'USD' ? '$' : '₩';
 
   // API 호출
   useEffect(() => {

@@ -25,7 +25,7 @@ function CheckoutSection({ selectedDeliveryMethod }: CheckoutSectionProps) {
   const [loading, setLoading] = useState(true);
 
   const { items, getTotalQuantity } = useCart();
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { symbol, convertPrice, formatPrice } = useCurrency();
 
   // 상품 목록 조회
   useEffect(() => {
@@ -80,7 +80,6 @@ function CheckoutSection({ selectedDeliveryMethod }: CheckoutSectionProps) {
   const convertedDeliveryFee = convertPrice(deliveryFee);
   const convertedTotalPrice = convertPrice(totalPrice);
 
-  const symbol = currency === 'USD' ? '$' : '₩';
   const totalQuantity = getTotalQuantity();
 
   const onClickPurchase = async () => {

@@ -7,6 +7,7 @@ type CurrencyContextType = {
   exchangeRate: ExchangeRate | null;
   convertPrice: (usdPrice: number) => number;
   formatPrice: (price: number) => string;
+  symbol: string;
 };
 
 type ExchangeRate = {
@@ -39,6 +40,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return price.toLocaleString();
   };
 
+  const symbol = currency === 'USD' ? '$' : '₩';
+
   // Context에 제공할 값
   const value = {
     currency,
@@ -46,6 +49,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     exchangeRate,
     convertPrice,
     formatPrice,
+    symbol,
   };
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;

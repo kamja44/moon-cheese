@@ -15,11 +15,10 @@ type ProductInfoSectionProps = {
 };
 
 function ProductInfoSection({ productId, name, category, rating, price, quantity }: ProductInfoSectionProps) {
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { symbol, convertPrice, formatPrice } = useCurrency();
   const { getItemQuantity, addItem, removeItem } = useCart();
   const [localQuantity, setLocalQuantity] = useState(1);
 
-  const symbol = currency === 'USD' ? '$' : '₩';
   const convertedPrice = convertPrice(price);
   const cartQuantity = getItemQuantity(productId);
   const isInCart = cartQuantity > 0;

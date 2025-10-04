@@ -15,8 +15,7 @@ function RecommendationSection({ productId }: RecommendationSectionProps) {
   const [recommendedProducts, setRecommendedProducts] = useState<ProductsResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { currency, convertPrice, formatPrice } = useCurrency();
-  const symbol = currency === 'USD' ? '$' : '₩';
+  const { symbol, convertPrice, formatPrice } = useCurrency();
   useEffect(() => {
     http
       .get<RecommendedProductsResponse>(`/api/product/recommend/${productId}`)

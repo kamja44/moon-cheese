@@ -53,9 +53,9 @@ function DeliveryItem({
   isSelected: boolean;
   onClick: () => void;
 }) {
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const { symbol, convertPrice, formatPrice } = useCurrency();
 
-  const displayPrice = price === 0 ? '무료' : `${currency === 'USD' ? '$' : '₩'}${formatPrice(convertPrice(price))}`;
+  const displayPrice = price === 0 ? '무료' : `${symbol}${formatPrice(convertPrice(price))}`;
 
   return (
     <Flex
