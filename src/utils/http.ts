@@ -43,6 +43,22 @@ export interface ProductsResponse {
   isCaffeineFree?: boolean;
 }
 
+export interface ProductListResponse {
+  products: {
+    id: number;
+    name: string;
+    category: 'CHEESE' | 'CRACKER' | 'TEA';
+    stock: number;
+    price: number;
+    description: string;
+    detailDescription: string;
+    images: string[];
+    rating: number;
+    isGlutenFree?: boolean;
+    isCaffeineFree?: boolean;
+  }[];
+}
+
 export interface ProductDetailResponse {
   id: number;
   name: string;
@@ -60,6 +76,15 @@ export interface ProductDetailResponse {
 export interface RecommendedProductsResponse {
   recommendProductIds: number[];
 }
+
+export interface GradeShippingResponse {
+  gradeShippingList: {
+    type: 'EXPLORER' | 'PILOT' | 'COMMANDER';
+    shippingFee: number;
+    freeShippingThreshold: number;
+  }[];
+}
+
 export const http = {
   get: function get<Response = unknown>(url: string) {
     return axios.get<Response>(url).then(res => res.data);

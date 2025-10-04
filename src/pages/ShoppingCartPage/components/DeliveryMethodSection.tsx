@@ -1,11 +1,15 @@
-import { useState } from 'react';
 import { Flex, Stack, styled } from 'styled-system/jsx';
 import { Spacing, Text } from '@/ui-lib';
 import { DeliveryIcon, RocketIcon } from '@/ui-lib/components/icons';
+import type { DeliveryMethod } from '..';
+import { useCurrency } from '@/providers/CurrencyProvider';
 
-function DeliveryMethodSection() {
-  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<string>('Express');
+type DeliveryMethodSectionProps = {
+  selectedMethod: DeliveryMethod;
+  onSelectMethod: (method: DeliveryMethod) => void;
+};
 
+function DeliveryMethodSection({ selectedMethod, onSelectMethod }: DeliveryMethodSectionProps) {
   return (
     <styled.section css={{ p: 5, bgColor: 'background.01_white' }}>
       <Text variant="H2_Bold">배송 방식</Text>
@@ -18,16 +22,16 @@ function DeliveryMethodSection() {
           description="3-5일 후 도착 예정"
           icon={<DeliveryIcon size={28} />}
           price={0}
-          isSelected={selectedDeliveryMethod === 'Express'}
-          onClick={() => setSelectedDeliveryMethod('Express')}
+          isSelected={selectedMethod === 'EXPRESS'}
+          onClick={() => onSelectMethod('EXPRESS')}
         />
         <DeliveryItem
           title="Premium"
           description="당일 배송"
           icon={<RocketIcon size={28} />}
           price={5}
-          isSelected={selectedDeliveryMethod === 'Premium'}
-          onClick={() => setSelectedDeliveryMethod('Premium')}
+          isSelected={selectedMethod === 'PREMIUM'}
+          onClick={() => onSelectMethod('PREMIUM')}
         />
       </Stack>
     </styled.section>
@@ -49,6 +53,10 @@ function DeliveryItem({
   isSelected: boolean;
   onClick: () => void;
 }) {
+  const { currency, convertPrice, formatPrice } = useCurrency();
+
+  const displayPrice = price === 0 ? '무료' : `${currency === 'USD' ? '$' : '₩'}${formatPrice(convertPrice(price))}`;
+
   return (
     <Flex
       gap={3}
@@ -76,7 +84,7 @@ function DeliveryItem({
         </Text>
       </Flex>
       <Text variant="B2_Medium" fontWeight={'semibold'} color={isSelected ? 'neutral.05_white' : 'neutral.01_black'}>
-        {price ? `$${price}` : '무료'}
+        {displayPrice}
       </Text>
     </Flex>
   );
