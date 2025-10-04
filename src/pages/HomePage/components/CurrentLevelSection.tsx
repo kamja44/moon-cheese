@@ -1,33 +1,10 @@
 import { Box, Flex, styled } from 'styled-system/jsx';
 import { ProgressBar, Spacing, Text } from '@/ui-lib';
-import { useEffect, useState } from 'react';
-import { http, type GradePointResponse, type UserInfoResponse } from '@/utils/http';
 import ErrorSection from '@/components/ErrorSection';
-
-type GradePoint = {
-  type: 'EXPLORER' | 'PILOT' | 'COMMANDER';
-  minPoint: number;
-};
+import { useUserGrade } from '@/hooks/useUserGrade';
 
 function CurrentLevelSection() {
-  const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null);
-  const [gradePoints, setGradePoints] = useState<GradePoint[]>([]);
-  const [error, setError] = useState<Error | null>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    Promise.all([http.get<UserInfoResponse>('/api/me'), http.get<GradePointResponse>('/api/grade/point')])
-      .then(([user, grades]) => {
-        setUserInfo(user);
-        setGradePoints(grades.gradePointList);
-      })
-      .catch(err => {
-        console.error('등급 정보 로딩 실패:', err);
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const { userInfo, gradePoints, loading, error, refetch } = useUserGrade();
 
   // 로딩 중
   if (loading) {
@@ -44,7 +21,7 @@ function CurrentLevelSection() {
   if (error) {
     return (
       <styled.section css={{ px: 5, py: 4 }}>
-        <ErrorSection onRetry={() => window.location.reload()} />
+        <ErrorSection onRetry={refetch} />
       </styled.section>
     );
   }

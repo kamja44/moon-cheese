@@ -5,10 +5,10 @@ import { SECOND } from '@/constants/time';
 import { Button, Spacing, Text } from '@/ui-lib';
 import { toast } from '@/ui-lib/components/toast';
 import { delay } from '@/utils/async';
-import type { DeliveryMethod } from '..';
 import { useCart } from '@/providers/CartProvider';
 import { useCurrency } from '@/providers/CurrencyProvider';
-import { http, type GradeShippingResponse, type ProductListResponse, type UserInfoResponse } from '@/utils/http';
+import { http } from '@/utils/http';
+import type { DeliveryMethod, GradeShippingResponse, ProductListResponse, UserInfoResponse } from '@/types';
 
 type CheckoutSectionProps = {
   selectedDeliveryMethod: DeliveryMethod;

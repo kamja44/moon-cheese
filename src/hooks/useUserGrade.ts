@@ -1,4 +1,5 @@
-import { http, type GradePointResponse, type UserInfoResponse } from '@/utils/http';
+import type { GradePointResponse, UserInfoResponse } from '@/types';
+import { http } from '@/utils/http';
 import { useEffect, useState } from 'react';
 
 type GradePoint = GradePointResponse['gradePointList'][number];

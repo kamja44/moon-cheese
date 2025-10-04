@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router';
 import { HStack, styled } from 'styled-system/jsx';
 import RecommendationProductItem from './RecommendationProductItem';
 import { useEffect, useState } from 'react';
-import { http, type ProductsResponse, type RecommendedProductsResponse } from '@/utils/http';
+import { http } from '@/utils/http';
 import { useCurrency } from '@/providers/CurrencyProvider';
 import ErrorSection from '@/components/ErrorSection';
+import type { ProductsResponse, RecommendedProductsResponse } from '@/types';
 
 type RecommendationSectionProps = {
   productId: number;

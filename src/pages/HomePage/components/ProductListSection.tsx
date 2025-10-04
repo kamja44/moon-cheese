@@ -1,49 +1,20 @@
 import { Counter, SubGNB, Text } from '@/ui-lib';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Box, Grid, styled } from 'styled-system/jsx';
 import ProductItem from '../components/ProductItem';
 import { useCurrency } from '@/providers/CurrencyProvider';
 import { useCart } from '@/providers/CartProvider';
-import { http, type ProductsResponse } from '@/utils/http';
 import ErrorSection from '@/components/ErrorSection';
-
-type Product = {
-  id: number;
-  name: string;
-  category: 'CHEESE' | 'CRACKER' | 'TEA';
-  stock: number;
-  price: number;
-  description: string;
-  images: string[];
-  rating: number;
-  isGlutenFree?: boolean;
-  isCaffeineFree?: boolean;
-};
+import { useProducts } from '@/hooks/useProducts';
 
 function ProductListSection() {
   const [currentTab, setCurrentTab] = useState('all');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
   const { convertPrice, formatPrice, symbol } = useCurrency();
   const { addItem, removeItem, getItemQuantity } = useCart();
+  const { products, loading, error, refetch } = useProducts();
   const navigate = useNavigate();
-
-  // API 호출
-  useEffect(() => {
-    http
-      .get<ProductsResponse>('/api/product/list')
-      .then(data => setProducts(data.products))
-      .catch(err => {
-        console.error('상품 목록 로딩 실패:', err);
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
   const handleClickProduct = (productId: number) => {
     navigate(`/product/${productId}`);
@@ -78,7 +49,7 @@ function ProductListSection() {
           <Text variant="H1_Bold">판매중인 상품</Text>
         </Box>
         <Box p={5}>
-          <ErrorSection onRetry={() => window.location.reload()} />
+          <ErrorSection onRetry={refetch} />
         </Box>
       </styled.section>
     );

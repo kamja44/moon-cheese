@@ -1,38 +1,12 @@
 import { Flex, styled } from 'styled-system/jsx';
 import { Spacing, Text } from '@/ui-lib';
 import { useCurrency } from '@/providers/CurrencyProvider';
-import { useEffect, useState } from 'react';
-import { http, type RecentProductsResponse } from '@/utils/http';
-
-type RecentProduct = {
-  id: number;
-  thumbnail: string;
-  name: string;
-  price: number;
-};
+import { useRecentProducts } from '@/hooks/useRecentProducts';
 
 function RecentPurchaseSection() {
   // 현재 선택된 값($,원), 환율
   const { symbol, convertPrice, formatPrice } = useCurrency();
-  const [products, setProducts] = useState<RecentProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  // API 호출
-  useEffect(() => {
-    http
-      .get<RecentProductsResponse>('/api/recent/product/list')
-      .then(data => {
-        setProducts(data.recentProducts);
-      })
-      .catch(err => {
-        console.error('최근 구매 상품 로딩 실패:', err);
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const { products, loading, error } = useRecentProducts();
 
   if (loading) {
     return (

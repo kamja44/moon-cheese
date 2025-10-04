@@ -1,4 +1,5 @@
-import { http, ProductListResponse } from '@/utils/http';
+import type { ProductListResponse } from '@/types';
+import { http } from '@/utils/http';
 import { useEffect, useState } from 'react';
 
 export function useProducts() {

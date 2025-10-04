@@ -2,33 +2,14 @@ import { Button, Counter, Spacing, Text } from '@/ui-lib';
 import { Box, Divider, Flex, Stack, styled } from 'styled-system/jsx';
 import ShoppingCartItem from './ShoppingCartItem';
 import { useCurrency } from '@/providers/CurrencyProvider';
-import { useEffect, useState } from 'react';
-import { http, type ProductListResponse } from '@/utils/http';
 import { useCart } from '@/providers/CartProvider';
 import ErrorSection from '@/components/ErrorSection';
+import { useProducts } from '@/hooks/useProducts';
 
 function ShoppingCartSection() {
   const { symbol, convertPrice, formatPrice } = useCurrency();
   const { items, addItem, removeItem, getItemQuantity } = useCart();
-
-  const [products, setProducts] = useState<ProductListResponse['products']>([]);
-  const [error, setError] = useState<Error | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    http
-      .get<ProductListResponse>(`/api/product/list`)
-      .then(data => {
-        setProducts(data.products);
-      })
-      .catch(err => {
-        setError(err);
-        console.error('상품 목록 조회 실패:', err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const { products, loading, error, refetch } = useProducts();
 
   // 장바구니에 담긴 상품만 필터링
   const cartProducts = products.filter(product => items.some(item => item.productId === product.id));
@@ -63,7 +44,7 @@ function ShoppingCartSection() {
     return (
       <styled.section bg="background.01_white">
         <Box p={5}>
-          <ErrorSection onRetry={() => window.location.reload()} />
+          <ErrorSection onRetry={refetch} />
         </Box>
       </styled.section>
     );

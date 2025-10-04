@@ -1,29 +1,25 @@
+import type { Currency, ExchangeRateResponse } from '@/types';
 import { http } from '@/utils/http';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 type CurrencyContextType = {
-  currency: 'USD' | 'KRW';
-  setCurrency: (currency: 'USD' | 'KRW') => void;
-  exchangeRate: ExchangeRate | null;
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
+  exchangeRate: ExchangeRateResponse['exchangeRate'] | null;
   convertPrice: (usdPrice: number) => number;
   formatPrice: (price: number) => string;
   symbol: string;
 };
 
-type ExchangeRate = {
-  KRW: number;
-  USD: number;
-};
-
 const CurrencyContext = createContext<CurrencyContextType | null>(null);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrency] = useState<'USD' | 'KRW'>('USD');
-  const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
+  const [currency, setCurrency] = useState<Currency>('USD');
+  const [exchangeRate, setExchangeRate] = useState<ExchangeRateResponse['exchangeRate'] | null>(null);
 
   useEffect(() => {
     http
-      .get<{ exchangeRate: ExchangeRate }>('/api/exchange-rate')
+      .get<ExchangeRateResponse>('/api/exchange-rate')
       .then(data => setExchangeRate(data.exchangeRate))
       .catch(console.error);
   }, []);

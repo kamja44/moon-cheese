@@ -1,8 +1,8 @@
 import { Flex, Stack, styled } from 'styled-system/jsx';
 import { Spacing, Text } from '@/ui-lib';
 import { DeliveryIcon, RocketIcon } from '@/ui-lib/components/icons';
-import type { DeliveryMethod } from '..';
 import { useCurrency } from '@/providers/CurrencyProvider';
+import type { DeliveryMethod } from '@/types';
 
 type DeliveryMethodSectionProps = {
   selectedMethod: DeliveryMethod;

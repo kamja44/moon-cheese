@@ -1,4 +1,5 @@
-import { http, type RecentProductsResponse } from '@/utils/http';
+import type { RecentProductsResponse } from '@/types';
+import { http } from '@/utils/http';
 import { useEffect, useState } from 'react';
 
 type RecentProduct = RecentProductsResponse['recentProducts'][number];

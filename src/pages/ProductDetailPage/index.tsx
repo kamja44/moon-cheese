@@ -5,10 +5,11 @@ import RecommendationSection from './components/RecommendationSection';
 import ThumbnailSection from './components/ThumbnailSection';
 import { useParams } from 'react-router';
 import { useEffect, useState } from 'react';
-import { http, type ProductDetailResponse } from '@/utils/http';
+import { http } from '@/utils/http';
 import { Box, styled } from 'styled-system/jsx';
 import { Text } from '@/ui-lib';
 import ErrorSection from '@/components/ErrorSection';
+import type { ProductDetailResponse } from '@/types';
 
 interface ProductProps {
   id: number;

@@ -4,8 +4,7 @@ import DeliveryMethodSection from './components/DeliveryMethodSection';
 import EmptyCartSection from './components/EmptyCartSection';
 import ShoppingCartSection from './components/ShoppingCartSection';
 import { useCart } from '@/providers/CartProvider';
-
-export type DeliveryMethod = 'EXPRESS' | 'PREMIUM';
+import type { DeliveryMethod } from '@/types';
 
 function ShoppingCartPage() {
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod>('EXPRESS');
